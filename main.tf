@@ -19,8 +19,9 @@ resource "aws_instance" "example" {
 
     user_data = <<-EOF
                 #!/bin/bash
+                cd /home/ubuntu
                 echo "Hello, World" > index.xhtml
-                nohup busybox httpd -f -p 8080 &
+                nohup busybox httpd -f -p 8080 -h /home/ubuntu &
                 EOF
 
     user_data_replace_on_change = true
