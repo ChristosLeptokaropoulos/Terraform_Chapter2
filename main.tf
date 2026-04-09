@@ -42,24 +42,28 @@ resource "aws_security_group" "instance" {
     }
 }
 
-resource "aws_launch_configuration" "example" {
+resource "aws_launch_template" "example" {
     image_id        = data.aws_ami.ubuntu.id
     instance_type   = "t3.micro"
-    security_groups = [aws_security_group.instance.id]
+    vpc_security_group_ids = [aws_security_group.instance.id]
     
-    user_data = <<-EOF
+    user_data = base64encode(<<-EOF
                 #!/bin/bash
                 echo "Hello, World" > index.xhtml
                 nohup busybox httpd -f -p ${var.server_port} &
                 EOF
+    )
 
-    lifecycle{
+    lifecycle {
         create_before_destroy = true
     }
 }
 
 resource "aws_autoscaling_group" "example" {
-    launch_configuration = aws_launch_configuration.example.name
+    launch_template {
+        id      = aws_launch_template.example.id
+        version = "$Latest"
+    }
     vpc_zone_identifier  = data.aws_subnets.default.ids
 
     min_size = 2
